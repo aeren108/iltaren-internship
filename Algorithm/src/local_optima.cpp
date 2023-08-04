@@ -9,7 +9,6 @@ double FirstOrderNeighbors::score(int node, Vector<Vector<int, SIZE>, SIZE>& gra
 	return 1.0 - 1.0 / neighbours;
 }
 
-
 int SecondOrderNeighbors::neighbour_count(int node, Vector<Vector<int, SIZE>, SIZE>& graph, bool visited[SIZE]) {
 	int neighbours = 0;
 	for (int i = 0; i < SIZE; ++i ) {
@@ -67,8 +66,6 @@ double SecondOrderNeighbors::score(int node, Vector<Vector<int, SIZE>, SIZE>& gr
     }
 
     return max;*/
-
-
 }
 
 int ThirdOrderNeighbors::neighbour_count(int node, Vector<Vector<int, SIZE>, SIZE>& graph, bool visited[SIZE]) {
@@ -178,10 +175,7 @@ int BetweennessCentrality::path_contains_node(int node, int start, int end, Vect
         int cur = queue[0];
         queue.remove_at(0);
 
-        if (cur == end) {
-            prevs[cur] = cur;
-            break;
-        }
+        if (cur == end) break;
 
         if (!visited[cur]) {
             for (int i = 0; i < SIZE; ++i) {

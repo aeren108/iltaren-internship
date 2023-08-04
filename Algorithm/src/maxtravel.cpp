@@ -13,7 +13,7 @@ Vector<Vector<int, SIZE>, SIZE> cities;
 LocalOptima* funcs[4];
 
 void init_cities() {
-    FILE *f = fopen("C:/Users/ahmet.colak/source/repos/cmake-deneme/file/ilmesafe.csv", "r");
+    FILE *f = fopen("C:/Users/ahmet.colak/source/repos/iltaren-staj/file/ilmesafe.csv", "r");
     char buff[1024]; int i = 0;
     while (fgets(buff, 1024, f) != NULL) {
         if (i < 2 || i > SIZE + 1) { ++i; continue; }
@@ -156,7 +156,7 @@ int main() {
 
     //TODO: Read distance and tolerance values from standart input
     bool visited[SIZE];
-    int distance = 250; int tolerance = 50; int start = 5;
+    int distance = 350; int tolerance = 50; int start = 5;
 
     FirstOrderNeighbors fon; SecondOrderNeighbors son; ThirdOrderNeighbors ton; ClosenessCentrality cc;
     funcs[0] = &fon; funcs[1] = &son; funcs[2] = &ton; funcs[3] = &cc;
@@ -169,33 +169,27 @@ int main() {
         }
     }
 
-    Vector<Vector<int, SIZE>, SIZE> cities1 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities2 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities3 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities4 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities5 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities6 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities7 = cities;
-    Vector<Vector<int, SIZE>, SIZE> cities8 = cities;
     //double weights[4] = { -0.1, 0.25, 0.4, 0.45 }; //for ankara only
-    double weights[4] = {-0.1, 0.2, 0.5, 0.1}; 
+    double weights[4] = {-0.1, 0.2, 0.5, 0.1};
 
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH FIRST ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, cities1, FirstOrderNeighbors()) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH SECOND ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, cities2, SecondOrderNeighbors()) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH THIRD ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, cities3, ThirdOrderNeighbors()) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH CLOSENESS CENTRALITY: " << find_max_travel(start, -1, visited, cities4, ClosenessCentrality()) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH RANDOM HEURISTIC AT EACH STEP: " << find_max_travel_probabilistic(start, -1, visited, cities5) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH LINEAR COMBINATION: " << find_max_travel(start, -1, visited, cities6, LinearCombination(weights, start)) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH DISTANCE TO PREVIOUS: " << find_max_travel(start, -1, visited, cities7, DistanceToPrevious()) << std::endl;
-    for (int i = 0; i < SIZE; ++i) visited[i] = false;
-    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH DISTANCE TO START: " << find_max_travel(start, -1, visited, cities8, DistanceToStart(start)) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; Vector<Vector<int, SIZE>, SIZE> graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH FIRST ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, graph, FirstOrderNeighbors()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH SECOND ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, graph, SecondOrderNeighbors()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH THIRD ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, graph, ThirdOrderNeighbors()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH CLOSENESS CENTRALITY: " << find_max_travel(start, -1, visited, graph, ClosenessCentrality()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH BETWEENNESS CENTRALITY: " << find_max_travel(start, -1, visited, graph, BetweennessCentrality()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH RANDOM HEURISTIC AT EACH STEP: " << find_max_travel_probabilistic(start, -1, visited, graph) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH LINEAR COMBINATION: " << find_max_travel(start, -1, visited, graph, LinearCombination(weights, start)) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH DISTANCE TO PREVIOUS: " << find_max_travel(start, -1, visited, graph, DistanceToPrevious()) << std::endl;
+    for (int i = 0; i < SIZE; ++i) visited[i] = false; graph = cities;
+    std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH DISTANCE TO START: " << find_max_travel(start, -1, visited, graph, DistanceToStart(start)) << std::endl;
 
     qlearning_optimize_weights(start);
 
