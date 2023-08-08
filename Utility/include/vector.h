@@ -10,7 +10,7 @@ class Vector {
 		bool insert(const T& item, int pos);
 		bool remove(int pos);
 		bool empty();
-		int size();
+		int size() const;
 		T at(int index);
 		T& operator[](int pos);
 		void operator=(const Vector<T, CAPACITY>& rhs);
@@ -90,7 +90,6 @@ bool Vector<T, C>::insert(const T& item, int pos) {
 		arr[decrement_index(realpos)] = item;
 	}
 
-	
 	size_++;
 	return true;
 }
@@ -126,7 +125,7 @@ bool Vector<T, C>::empty() {
 }
 
 template <class T, int C>
-int Vector<T, C>::size() {
+int Vector<T, C>::size() const {
 	return size_;
 }
 

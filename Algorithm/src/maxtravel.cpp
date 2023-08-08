@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <cstdlib>
 
 #include "vector.h"
 #include "list.h"
@@ -149,28 +148,85 @@ int qlearning_optimize_weights(int start) {
     return 0;
 }
 
+void init_graph(int distance, int tolerance, Vector<Vector<int, SIZE>, SIZE>& graph) {
+    for (int i = 0; i < SIZE; ++i) {
+        for (int j = 0; j < SIZE; ++j) {
+            if (graph[i][j] > distance + tolerance || graph[i][j] < distance - tolerance)
+                graph[i][j] = 0;
+        }
+    }
+}
 
+void find_optimum_xy(LocalOptima& lo) {
+    Vector<Vector<int, SIZE>, SIZE> graph = cities;
+    int distance = 1000, tolerance = 100;
+    bool visited[SIZE] = { false };
+    int max = 0, maxdist = 0, maxtolerance = 0, globalmax = 0;
+
+    for (; distance >= 100; distance -= 3) {
+        graph = cities;
+        init_graph(distance, tolerance, graph);
+        for (int i = 0; i < SIZE; ++i) visited[i] = false;
+        int cur = find_max_travel(5, -1, visited, graph, lo);
+            
+        if (cur > globalmax - 2) { maxdist = distance; max = cur; }
+        if (cur > globalmax) { globalmax = cur; }
+    }
+
+    for (; tolerance > 10; tolerance -= 2) {
+        graph = cities;
+        init_graph(maxdist, tolerance, graph);
+        for (int i = 0; i < SIZE; ++i) visited[i] = false;
+        int cur = find_max_travel(5, -1, visited, graph, lo);
+        
+        if (cur > globalmax - 2) { maxtolerance = tolerance; max = cur; }
+        if (cur > globalmax) { globalmax = cur; }
+    }
+
+    std::cout << "OPTIMUM DISTANCE AND TOLERANCE: " << maxdist << ", " << maxtolerance << " WITH CITY COUNT:" << max << std::endl;
+}
+
+void find_optimum_xy2(LocalOptima& lo) {
+    Vector<Vector<int, SIZE>, SIZE> graph = cities;
+    int distance = 1000, tolerance = 100;
+    bool visited[SIZE] = { false };
+    double max = 0;
+    int maxdist = 0, maxtolerance = 0, globalmax = 0;
+
+    for (; distance >= 100; distance -= 3) {
+        for (; tolerance > 10; tolerance -= 2) {
+            graph = cities;
+            init_graph(distance, tolerance, graph);
+            //for (int i = 0; i < SIZE; ++i) visited[i] = false;
+            //int cur = find_max_travel(5, -1, visited, graph, lo);
+
+            double nt = tolerance / 100.0, nd = (distance - 100) / 100.0;
+            int edges = edge_count(graph); for (int i = 0; i < SIZE; ++i) visited[i] = false;
+            double score = (double)find_max_travel(5, -1, visited, graph, lo) / (nt + nd);
+            if (score > max) { max = score; maxdist = distance; maxtolerance = tolerance; }
+        }
+    }
+
+    
+    init_graph(maxdist, maxtolerance, graph);
+    std::cout << "OPTIMUM DISTANCE AND TOLERANCE: " << maxdist << ", " << maxtolerance << " WITH CITY COUNT:" << find_max_travel(5, -1, visited, graph, lo) << std::endl;
+}
 
 int main() {
-    init_cities();
+    bool visited[SIZE]; //TODO: Read distance and tolerance values from standart input
+    int distance = 250; int tolerance = 50; int start = 5;
 
-    //TODO: Read distance and tolerance values from standart input
-    bool visited[SIZE];
-    int distance = 350; int tolerance = 50; int start = 5;
+    //double weights[4] = { -0.1, 0.25, 0.4, 0.45 }; //for ankara only
+    double weights[4] = { -0.1, 0.2, 0.5, 0.1 };
 
     FirstOrderNeighbors fon; SecondOrderNeighbors son; ThirdOrderNeighbors ton; ClosenessCentrality cc;
     funcs[0] = &fon; funcs[1] = &son; funcs[2] = &ton; funcs[3] = &cc;
 
-    //Remove unreachable edges
-    for (int i = 0; i < SIZE; ++i) {
-        for (int j = 0; j < SIZE; ++j) {
-            if (cities[i][j] > distance + tolerance || cities[i][j] < distance - tolerance)
-                cities[i][j] = 0;
-        }
-    }
+    init_cities();
+    find_optimum_xy(LinearCombination(weights, start));
 
-    //double weights[4] = { -0.1, 0.25, 0.4, 0.45 }; //for ankara only
-    double weights[4] = {-0.1, 0.2, 0.5, 0.1};
+
+    init_graph(distance, tolerance, cities);
 
     for (int i = 0; i < SIZE; ++i) visited[i] = false; Vector<Vector<int, SIZE>, SIZE> graph = cities;
     std::cout << "MAX CITY COUNT FROM " << start + 1 << " WITH FIRST ORDER NEIGHBORS: " << find_max_travel(start, -1, visited, graph, FirstOrderNeighbors()) << std::endl;
