@@ -2,6 +2,8 @@
 #include "vector.h"
 #include "list.h"
 
+#define ERROR_RATE 0.1
+
 Vector<int, 50> times;
 Vector<bool, 50> marks;
 
@@ -18,7 +20,7 @@ void preprocess_times() {
 	/*TODO: 
 		1. Convert all times to minutes
 		2. Sort the array
-		3. Substract the minimum element from all elements
+		3. Subtract the minimum element from all elements
 	*/
 
 	int temp = times[0];
@@ -33,10 +35,13 @@ void subtract_element(int i, Vector<int, 50>& arr) {
 	for (int i = 0; i < arr.size(); ++i) arr[i] -= temp;
 }
 
+int abs(int x) {
+	if (x < 0) return -x; return x;
+}
+
 int main() {
-	Vector<int, 50> buses;
-	Vector<int, 50> temparr;
-	Vector<Vector<int, 10>, 50> firstbuses;
+	Vector<int, 50> periods;
+	Vector<Vector<int, 10>, 50> groups;
 
 	read_input();
 	for (int i = 0; i < times.size(); ++i) {
@@ -45,70 +50,98 @@ int main() {
 
 	//preprocess_times();
 
-	for (int i = 0; i < times.size(); ++i) {
-		temparr = times;
+	for (int i = 0; i < times.size(); ++i) { //Find a pattern for i'th element
 		if (marks[i]) continue;
+		
+		int maxlen = 0; int period = 0;
+		Vector<int, 50> temparr = times;
+		
 		subtract_element(i, temparr);
-		int maxoccurance = 0; int period = 0;
 
 		std::cout << "Times: " << temparr << std::endl;
-		std::cout << "Checked: " << marks << std::endl << std::endl;
-		
-		for (int j = i + 1; j < temparr.size(); ++j) {
+		std::cout << "Checked: " << marks << std::endl;
+		Vector<int, 50> visited; visited.push_back(i);
+		for (int j = i + 1; j < temparr.size(); ++j) { //Check for the pattern with maximum length
 			if (marks[j]) continue;
-			int occurance = 1;
-			
-			for (int k = j + 1; k < temparr.size(); ++k) {
-				if (temparr[j] * (occurance + 1) < temparr[k]) break;
-				if (marks[k]) continue;
-				if (temparr[k] % temparr[j] == 0 && temparr[j] * (occurance+1) == temparr[k]) {
-					occurance++;
+
+			//TODO: Find the max length for period [min_period, max_period]
+
+			int est_period = temparr[j];
+			int min_period = est_period * 0.81, max_period = est_period * 1.21;
+
+			for (est_period = min_period; est_period < max_period; ++est_period) {
+				int length = 1;
+				Vector<int, 50> visited_tmp; visited_tmp.push_back(j);
+				//Measure the pattern length for period with jth item (estimated period <- temparr[j])
+				for (int k = j + 1; k < temparr.size(); ++k) {
+					int expected_time = (length + 1) * est_period;
+					int err = est_period / 10.0f; //+0.5 for rounding to nearest integer
+
+					if (temparr[k] > expected_time + err) break; //There is no possible value for rest of the array
+					else if (temparr[k] <= expected_time + err && temparr[k] >= expected_time - err) {
+						length++;
+						//est_period = (est_period * (length - 1) + temparr[k] / length) / length;
+						visited_tmp.push_back(k);
+					}
 				}
+
+				//Set the period for the pattern with maximum length
+				if (length > maxlen) { maxlen = length; visited = visited_tmp; period = est_period; }
 			}
 
-
-			if (occurance > maxoccurance) { maxoccurance = occurance; period = temparr[j]; }
+			//visited = visited_tmp;
 		}
 
-		int occurance = 0;
-		for (int k = i; k < temparr.size(); ++k) {
-			if (occurance * period < temparr[i]) break;
-			if (marks[k]) continue;
-			if (occurance * period == temparr[k]) {
-				marks[k] = true;
-				occurance++;
+		std::cout << "Max length for i=" << i << ": " << maxlen << std::endl << std::endl;
+
+		// Mark visited elements
+		for (int j = 0; j < visited.size(); ++j) marks[visited[j]] = true;
+		
+		/*int length = 0;
+		for (int j = i; j < temparr.size(); ++j) {
+			if (marks[j]) continue;
+			int expected_time = length * period;
+			float err = period / 8.0f;
+
+			if (temparr[j] > expected_time + err) break;
+			else if (temparr[j] <= expected_time + err && temparr[j] >= expected_time - err) {
+				marks[j] = true;
+				length++;
 			}
-		}
+		}*/
 
 		period = period == 0 ? times[i] : period;
 
-		int index = -1;
-		for (int k = 0; k < buses.size(); ++k) {
-			if (buses[k] == period) index = k;
+		int index = -1; //Find the pattern group if it already exists
+		for (int j = 0; j < periods.size(); ++j) {
+			int err = period / 10.0f > periods[j] / 10.0f ? period / 10.0f + 0.5f : periods[j] / 10.0f + 0.5f;
+			if (period <= periods[j] + err && period >= periods[j] - err) index = j;
 		}
 
-		if (index != -1) {
-			firstbuses[index].push_back(i);
-		} else {
-			buses.push_back(period);
-			firstbuses.push_back(Vector<int, 10>());
-			firstbuses[firstbuses.size() - 1].push_back(i);
+		if (index != -1) { // If a group with same period  exist, push it to the existing group
+			groups[index].push_back(i);
+		} else { //If it does not exist push new
+			periods.push_back(period);
+			groups.push_back(Vector<int, 10>());
+			groups[groups.size() - 1].push_back(i);
 		}
 	}
 
-	std::cout << "BUS COUNT: " << buses.size() << std::endl;
-	std::cout << "PERIODS: " << buses << std::endl;
+	std::cout << "BUS COUNT: " << periods.size() << std::endl;
+	std::cout << "PERIODS: " << periods << std::endl;
 
 	std::cout << "GROUPS: " << std::endl;
 
-	for (int i = 0; i < firstbuses.size(); ++i) {
+	for (int i = 0; i < groups.size(); ++i) {
 		
-		for (int k = 0; k < firstbuses[i].size(); ++k) {
-			int occurance = 0;
+		for (int k = 0; k < groups[i].size(); ++k) {
+			int length = 0;
 			for (int j = 0; j < times.size(); ++j) {
-				if (times[firstbuses[i][k]] + occurance * buses[i] == times[j]) {
+				int expected_time = times[groups[i][k]] + length * periods[i];
+				float err = periods[i] / 10.0f;
+				if (abs(times[j] - expected_time) <= err) {
 					std::cout << times[j] << ", ";
-					occurance++;
+					length++;
 				}
 			}
 			
@@ -116,7 +149,6 @@ int main() {
 
 		std::cout << std::endl;
 	}
-
 
 	return 1;
 }
