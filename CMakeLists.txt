@@ -4,7 +4,7 @@
 
 cmake_minimum_required (VERSION 3.14) # 3.8 ?
 
-project ("iltren-staj")
+project ("iltaren-staj")
 
 add_subdirectory("Algorithm")
 add_subdirectory("Utility")

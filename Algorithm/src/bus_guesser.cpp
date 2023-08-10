@@ -2,7 +2,7 @@
 #include "vector.h"
 #include "list.h"
 
-#define ERROR_RATE 0.1
+#define ERROR_RATE 0.1f
 
 Vector<int, 50> times;
 Vector<bool, 50> marks;
@@ -42,6 +42,7 @@ int abs(int x) {
 int main() {
 	Vector<int, 50> periods;
 	Vector<Vector<int, 10>, 50> groups;
+	Vector<Vector<int, 50>, 10> g;
 
 	read_input();
 	for (int i = 0; i < times.size(); ++i) {
@@ -60,27 +61,29 @@ int main() {
 
 		std::cout << "Times: " << temparr << std::endl;
 		std::cout << "Checked: " << marks << std::endl;
-		Vector<int, 50> visited; visited.push_back(i);
+		Vector<int, 50> visited;
 		for (int j = i + 1; j < temparr.size(); ++j) { //Check for the pattern with maximum length
 			if (marks[j]) continue;
 
-			//TODO: Find the max length for period [min_period, max_period]
-
 			int est_period = temparr[j];
-			int min_period = est_period * 0.81, max_period = est_period * 1.21;
+			int min_period = est_period * (1 - ERROR_RATE) * (1 - ERROR_RATE);
+			int max_period = est_period * (1 + ERROR_RATE) * (1 + ERROR_RATE);
 
-			for (est_period = min_period; est_period < max_period; ++est_period) {
+			for (est_period = min_period; est_period < max_period; ++est_period) { //Try all possible values for period
 				int length = 1;
-				Vector<int, 50> visited_tmp; visited_tmp.push_back(j);
+				Vector<int, 50> visited_tmp; visited_tmp.push_back(i); visited_tmp.push_back(j);
+
 				//Measure the pattern length for period with jth item (estimated period <- temparr[j])
 				for (int k = j + 1; k < temparr.size(); ++k) {
+					if (marks[k]) continue;
+
 					int expected_time = (length + 1) * est_period;
-					int err = est_period / 10.0f; //+0.5 for rounding to nearest integer
+					int err = est_period * ERROR_RATE;
 
 					if (temparr[k] > expected_time + err) break; //There is no possible value for rest of the array
 					else if (temparr[k] <= expected_time + err && temparr[k] >= expected_time - err) {
 						length++;
-						//est_period = (est_period * (length - 1) + temparr[k] / length) / length;
+						//est_period = (est_period * (length - 1) + temparr[k] / length) / length; // adjust estimated period
 						visited_tmp.push_back(k);
 					}
 				}
@@ -88,13 +91,11 @@ int main() {
 				//Set the period for the pattern with maximum length
 				if (length > maxlen) { maxlen = length; visited = visited_tmp; period = est_period; }
 			}
-
-			//visited = visited_tmp;
 		}
 
 		std::cout << "Max length for i=" << i << ": " << maxlen << std::endl << std::endl;
 
-		// Mark visited elements
+		//Mark visited elements
 		for (int j = 0; j < visited.size(); ++j) marks[visited[j]] = true;
 		
 		/*int length = 0;
@@ -109,16 +110,16 @@ int main() {
 				length++;
 			}
 		}*/
-
+		g.push_back(visited);
 		period = period == 0 ? times[i] : period;
 
 		int index = -1; //Find the pattern group if it already exists
 		for (int j = 0; j < periods.size(); ++j) {
-			int err = period / 10.0f > periods[j] / 10.0f ? period / 10.0f + 0.5f : periods[j] / 10.0f + 0.5f;
+			int err = period * ERROR_RATE < periods[j] * ERROR_RATE ? period * ERROR_RATE + 0.5f : periods[j] * ERROR_RATE + 0.5f;
 			if (period <= periods[j] + err && period >= periods[j] - err) index = j;
 		}
 
-		if (index != -1) { // If a group with same period  exist, push it to the existing group
+		if (index != -1) { //If a group with same period exists, push it to the existing group
 			groups[index].push_back(i);
 		} else { //If it does not exist push new
 			periods.push_back(period);
@@ -132,13 +133,15 @@ int main() {
 
 	std::cout << "GROUPS: " << std::endl;
 
-	for (int i = 0; i < groups.size(); ++i) {
+	/*for (int i = 0; i < groups.size(); ++i) {
 		
 		for (int k = 0; k < groups[i].size(); ++k) {
 			int length = 0;
+
 			for (int j = 0; j < times.size(); ++j) {
 				int expected_time = times[groups[i][k]] + length * periods[i];
-				float err = periods[i] / 10.0f;
+				int err = periods[i] * ERROR_RATE;
+
 				if (abs(times[j] - expected_time) <= err) {
 					std::cout << times[j] << ", ";
 					length++;
@@ -147,6 +150,15 @@ int main() {
 			
 		}
 
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;*/
+
+	for (int i = 0; i < g.size(); ++i) {
+		for (int j = 0; j < g[i].size(); ++j) {
+			std::cout << times[g[i][j]] << ", ";
+		}
+		//std::cout << g[i] << std::endl;
 		std::cout << std::endl;
 	}
 
