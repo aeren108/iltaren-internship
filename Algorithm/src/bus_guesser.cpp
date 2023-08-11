@@ -66,10 +66,10 @@ int main() {
 			if (marks[j]) continue;
 
 			int est_period = temparr[j];
-			int min_period = est_period * (1 - ERROR_RATE) * (1 - ERROR_RATE);
-			int max_period = est_period * (1 + ERROR_RATE) * (1 + ERROR_RATE);
+			int min_period = est_period * (1 - ERROR_RATE);
+			int max_period = est_period * (1 + ERROR_RATE);
 
-			for (est_period = min_period; est_period < max_period; ++est_period) { //Try all possible values for period
+			for (est_period = min_period; est_period <= max_period; ++est_period) { //Try all possible values for period
 				int length = 1;
 				Vector<int, 50> visited_tmp; visited_tmp.push_back(i); visited_tmp.push_back(j);
 
