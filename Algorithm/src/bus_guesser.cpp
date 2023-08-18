@@ -3,7 +3,7 @@
 #include "list.h"
 
 #define MAX_BUS 50
-#define MAX_GROUP 15
+#define MAX_GROUP 300
 
 #define ERROR_RATE 0.1f
 #define RATE_OF_CHANGE 0.05f
@@ -44,8 +44,8 @@ void subtract_element(int n, Vector<int, MAX_BUS>& arr) {
 
 int abs(int x) { if (x < 0) return -x; return x; }
 
-int average_increasing_rate(Vector<int, MAX_BUS>& group) {
-	int sum = 0;
+double average_increasing_rate(Vector<int, MAX_BUS>& group) {
+	double sum = 0;
 	for (int i = 2; i < group.size(); ++i)
 		sum += (times[group[i]] - times[group[i - 1]]) - (times[group[i - 1]] - times[group[i - 2]]);
 
@@ -60,9 +60,139 @@ int average_period(Vector<int, MAX_BUS>& group) {
 	return ((float)sum / group.size() + 0.5f);
 }
 
-void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
-	Vector<int, MAX_BUS> periods;
+void extract_increasing_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups) {
+	Vector<bool, MAX_BUS> marks; for (int i = 0; i < MAX_BUS; ++i) marks.push_back(false);
+	
+	for (int i = 0; i < times.size(); ++i) {
+		if (marks[i]) continue;
 
+		int maxlen = 0;
+		int decr_maxlen = 0;
+		int period = 0;
+
+		Vector<int, MAX_BUS> temparr = times;
+		Vector<int, MAX_BUS> visited;
+
+		subtract_element(i, temparr);
+
+		if (DEBUG) {
+			std::cout << "Times: " << temparr << std::endl;
+			std::cout << "Checked: " << marks << std::endl;
+		}
+
+		for (int j = i + 1; j < temparr.size(); ++j) {
+			if (marks[j]) continue;
+
+			int est_period = temparr[j];
+			int prev = temparr[j];
+
+			int length = 1;
+
+			Vector<int, MAX_BUS> visited_tmp;
+			visited_tmp.push_back(i);
+			visited_tmp.push_back(j);
+
+			//Look for an increasing pattern
+			for (int k = j + 1; k < temparr.size(); ++k) {
+				if (marks[k]) continue;
+
+				int max_expected_time = prev + est_period + est_period * RATE_OF_CHANGE;
+				int min_expected_time = prev + est_period;
+
+				if (temparr[k] > max_expected_time) break; //There is no possible value for rest of the array
+				else if (temparr[k] >= min_expected_time) {
+					length++;
+					visited_tmp.push_back(k);
+					est_period = temparr[k] - prev;
+					prev = temparr[k];
+				}
+			}
+
+			if (length > maxlen) {
+				maxlen = length;
+				visited = visited_tmp;
+				period = times[visited[1]] - times[visited[0]];
+			}
+		}
+
+		if (maxlen < 2) continue;
+
+		for (int j = 0; j < visited.size(); ++j) {
+			if (DEBUG) std::cout << times[visited[j]] << ", ";
+			marks[visited[j]] = true;
+		} if (DEBUG) std::cout << std::endl << std::endl;
+
+		groups.push_back(visited);
+	}
+}
+
+void extract_decreasing_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups) {
+	Vector<bool, MAX_BUS> marks; for (int i = 0; i < MAX_BUS; ++i) marks.push_back(false);
+
+	for (int i = 0; i < times.size(); ++i) {
+		if (marks[i]) continue;
+
+		int maxlen = 0;
+		int decr_maxlen = 0;
+		int period = 0;
+
+		Vector<int, MAX_BUS> temparr = times;
+		Vector<int, MAX_BUS> visited;
+
+		subtract_element(i, temparr);
+
+		if (DEBUG) {
+			std::cout << "Times: " << temparr << std::endl;
+			std::cout << "Checked: " << marks << std::endl;
+		}
+
+		for (int j = i + 1; j < temparr.size(); ++j) {
+			if (marks[j]) continue;
+
+			int est_period = temparr[j];
+			int prev = temparr[j];
+
+			int length = 1;
+
+			Vector<int, MAX_BUS> visited_tmp;
+			visited_tmp.push_back(i);
+			visited_tmp.push_back(j);
+
+			//Look for a decreasing pattern
+			for (int k = j + 1; k < temparr.size(); ++k) {
+				if (marks[k]) continue;
+				
+				int min_expected_time = prev + est_period - est_period * RATE_OF_CHANGE;
+				int max_expected_time = prev + est_period;
+
+				if (temparr[k] > max_expected_time) break; //There is no possible value for rest of the array
+				else if (temparr[k] >= min_expected_time) {
+					length++;
+					visited_tmp.push_back(k);
+					est_period = temparr[k] - prev;
+					prev = temparr[k];
+				}
+			}
+
+			if (length > maxlen) {
+				maxlen = length;
+				visited = visited_tmp;
+				period = times[visited[1]] - times[visited[0]];
+			}
+		}
+
+		if (maxlen == 0) continue;
+
+		for (int j = 0; j < visited.size(); ++j) {
+			if (DEBUG) std::cout << times[visited[j]] << ", ";
+			marks[visited[j]] = true;
+		} if (DEBUG) std::cout << std::endl << std::endl;
+
+		groups.push_back(visited);
+	}
+}
+
+void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
 	for (int i = 0; i < times.size(); ++i) {
 		if (marks[i]) continue;
 		
@@ -87,6 +217,7 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 			int length = 1;
 
 			Vector<int, MAX_BUS> visited_tmp;
+
 			visited_tmp.push_back(i);
 			visited_tmp.push_back(j);
 
@@ -104,6 +235,10 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 					est_period = temparr[k] - prev;
 					prev = temparr[k];
 				}
+			}
+
+			if (length >= 2) {
+				groups.push_back(visited_tmp);
 			}
 
 			if (length > maxlen) {
@@ -139,6 +274,17 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 				}
 			}
 
+			if (length >= 2) {
+				bool equal = true;
+				if (groups[groups.size() - 1].size() == visited_tmp.size()) {
+					for (int k = 0; k < visited_tmp.size(); ++k) {
+						if (visited_tmp[k] != groups[groups.size() - 1][k]) { equal = false; break; }
+					}
+				}
+				else equal = false;
+				if (!equal) groups.push_back(visited_tmp);
+			}
+
 			if (length > maxlen) {
 				maxlen = length;
 				visited = visited_tmp;
@@ -150,23 +296,25 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 
 		for (int j = 0; j < visited.size(); ++j) {
 			if (DEBUG) std::cout << times[visited[j]] << ", ";
-			marks[visited[j]] = true;
+			//marks[visited[j]] = true;
 		} if (DEBUG) std::cout << std::endl << std::endl;
 
-		periods.push_back(period);
-		groups.push_back(visited);
+		//groups.push_back(visited);
 	}
 
-	if (DEBUG) {
-		std::cout << "GROUPS:" << std::endl;
-		for (int i = 0; i < groups.size(); ++i) {
-			for (int j = 0; j < groups[i].size(); ++j) {
-				std::cout << times[groups[i][j]] << ", ";
-			}
-			std::cout << std::endl;
+
+	//extract_increasing_groups(groups);
+	//extract_decreasing_groups(groups);
+
+	std::cout << "GROUPS:" << std::endl;
+	for (int i = 0; i < groups.size(); ++i) {
+		std::cout << "index: " << i << " -- >";
+		for (int j = 0; j < groups[i].size(); ++j) {
+			std::cout << times[groups[i][j]] << ", ";
 		}
+		std::cout << std::endl;
 	}
-
+		
 	Vector<int, MAX_GROUP> group_periods;
 	Vector<bool, MAX_GROUP> group_marks;
 
@@ -177,8 +325,10 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 		if (group_marks[i]) continue;
 		
 		int maxlen = 0;
-		int avg_incr = average_increasing_rate(groups[i]);
+		double avg_incr = average_increasing_rate(groups[i]);
 		int avg_period = average_period(groups[i]);
+
+		bool increasing = avg_incr > 0 ? true : false;
 
 		if (DEBUG) std::cout << "Group checked: " << group_marks << std::endl;
 
@@ -186,9 +336,10 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 
 		for (int j = i + 1; j < groups.size(); ++j) {
 			if (DEBUG) std::cout << "AVERAGE PERIOD: " << average_period(groups[j]) << " AVERAGE INCREASING RATE: " << average_increasing_rate(groups[j]) << std::endl;
+			bool increasing2 = average_increasing_rate(groups[j]) > 0 ? true : false;
 			if (group_marks[j] || 
 				groups[i].size() != groups[j].size() || 
-				avg_incr != average_increasing_rate(groups[j]) ||
+				increasing != increasing2 ||
 				avg_period > average_period(groups[j]) + avg_period * ERROR_RATE || 
 				avg_period < average_period(groups[j]) - avg_period * ERROR_RATE)
 				continue;
@@ -200,8 +351,8 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 			visited_group_tmp.push_back(j);
 
 			int expected_diff = times[groups[j][0]] - times[groups[i][groups[i].size() - 1]];
-			if (DEBUG) std::cout << "Expected diff: " << expected_diff  << "period i= "<< i << " ->" << periods[i] << std::endl;
-			if (expected_diff < periods[i]) continue;
+			if (DEBUG) std::cout << "Expected diff: " << expected_diff  << "period j= "<< j << " ->" << average_period(groups[j]) << std::endl;
+			if (expected_diff <= avg_period) continue;
 
 			for (int k = j + 1; k < groups.size(); ++k) {
 				if (group_marks[k] || groups[k].size() != groups[j].size()) continue;
@@ -219,8 +370,8 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 			}
 		}
 
-		if (maxlen == 0) continue;
-
+		if (maxlen < 2) continue;
+		
 		for (int j = 0; j < visited_group.size(); ++j) 
 			group_marks[visited_group[j]] = true;
 		
@@ -312,6 +463,8 @@ int main() {
 	Vector<Vector<int, MAX_BUS>, MAX_GROUP> main_groups_regular;
 	Vector<Vector<int, MAX_GROUP>, MAX_GROUP> recurring_groups;
 
+	
+
 	read_input();
 	for (int i = 0; i < times.size(); ++i)
 		marks.push_back(false);
@@ -319,7 +472,7 @@ int main() {
 	//preprocess_times();
 
 	extract_recurring_groups(main_groups_recurring, recurring_groups);
-	
+
 	//Clear marks and mark only recurring groups
 	for (int i = 0; i < marks.size(); ++i) marks[i] = false;
 
