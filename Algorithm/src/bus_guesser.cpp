@@ -8,6 +8,8 @@
 #define ERROR_RATE 0.1f
 #define RATE_OF_CHANGE 0.05f
 
+#define MAX_GROUP_DISTANCE 250
+
 #define DEBUG false
 
 Vector<int, MAX_BUS> times;
@@ -302,10 +304,6 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 		//groups.push_back(visited);
 	}
 
-
-	//extract_increasing_groups(groups);
-	//extract_decreasing_groups(groups);
-
 	std::cout << "GROUPS:" << std::endl;
 	for (int i = 0; i < groups.size(); ++i) {
 		std::cout << "index: " << i << " -- >";
@@ -393,6 +391,133 @@ void extract_recurring_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, V
 	}
 }
 
+void extract_recurring_distant_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
+	Vector<int, MAX_GROUP> periods;
+
+	for (int i = 0; i < times.size(); ++i) {
+		if (marks[i]) continue;
+
+		int maxlen = 0;
+		int period = 0;
+
+		Vector<int, MAX_BUS> temparr = times;
+		Vector<int, MAX_BUS> visited;
+
+		subtract_element(i, temparr);
+
+		if (DEBUG) {
+			std::cout << "Times: " << temparr << std::endl;
+			std::cout << "Checked: " << marks << std::endl;
+		}
+
+		for (int j = i + 1; j < temparr.size(); ++j) {
+			if (marks[j]) continue;
+
+			int est_period = temparr[j];
+			int prev = temparr[j];
+			int length = 1;
+
+			Vector<int, MAX_BUS> visited_tmp;
+
+			visited_tmp.push_back(i);
+			visited_tmp.push_back(j);
+
+			for (int k = j + 1; k < temparr.size(); ++k) {
+				if (marks[k]) continue;
+
+				int expected_time = (length + 1) * est_period;
+
+				if (temparr[k] > expected_time) break; //There is no possible value for rest of the array
+				else if (temparr[k] == expected_time) {
+					length++;
+					visited_tmp.push_back(k);
+				}
+			}
+
+			if (length >= 2) {
+				periods.push_back(times[visited_tmp[1]] - times[visited_tmp[0]]);
+				groups.push_back(visited_tmp);
+			}
+
+		}
+	}
+
+	std::cout << "GROUPS:" << std::endl;
+	for (int i = 0; i < groups.size(); ++i) {
+		std::cout << "index: " << i << " period " << periods[i] << " -- >";
+		for (int j = 0; j < groups[i].size(); ++j) {
+			std::cout << times[groups[i][j]] << ", ";
+		}
+		std::cout << std::endl;
+	}
+
+	Vector<bool, MAX_GROUP> group_marks;
+
+	for (int i = 0; i < groups.size(); ++i) group_marks.push_back(false);
+
+	for (int i = 0; i < groups.size(); ++i) {
+		if (group_marks[i]) continue;
+
+		int period = times[groups[i][1]] - times[groups[i][0]];
+		int maxlen = 0;
+
+		Vector<int, MAX_GROUP> visited_group;
+
+		for (int j = i + 1; j < groups.size(); ++j) {
+			if (group_marks[j] || 
+				groups[i].size() != groups[j].size()) continue;
+
+			int dist = times[groups[j][0]] - times[groups[i][groups[i].size() - 1]];
+			int length = 1;
+
+			Vector<int, MAX_GROUP> visited_group_tmp;
+			visited_group_tmp.push_back(i);
+			visited_group_tmp.push_back(j);
+
+			if (dist > MAX_GROUP_DISTANCE || dist < 0 || dist != periods[j]) continue;
+
+			for (int k = j + 1; k < groups.size(); ++k) {
+				if (group_marks[j] ||
+					groups[i].size() != groups[k].size()) continue;
+
+				dist = times[groups[k][0]] - times[groups[j][groups[j].size() - 1]];
+				if (dist > MAX_GROUP_DISTANCE || dist < 0) break;
+				if (dist == periods[k]) {
+					length++;
+					visited_group_tmp.push_back(k);
+				}
+			
+			}
+
+			if (length > maxlen) {
+				maxlen = length;
+				visited_group = visited_group_tmp;
+			}
+
+		}
+
+		if (maxlen < 2) continue;
+
+		for (int j = 0; j < visited_group.size(); ++j)
+			group_marks[visited_group[j]] = true;
+
+		groups2.push_back(visited_group);
+	}
+
+	std::cout << "GROUP COUNT: " << groups2.size() << std::endl;
+	for (int i = 0; i < groups2.size(); ++i) {
+		for (int j = 0; j < groups2[i].size(); ++j) {
+			for (int k = 0; k < groups[groups2[i][j]].size(); ++k) {
+				std::cout << times[groups[groups2[i][j]][k]] << ", ";
+			}
+			std::cout << " | ";
+		}
+
+		std::cout << std::endl;
+	}
+
+}
+
 void extract_regular_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vector<int, MAX_BUS>& periods) {
 	for (int i = 0; i < times.size(); ++i) { //Find a pattern for i'th element
 		if (marks[i]) continue;
@@ -418,28 +543,31 @@ void extract_regular_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vec
 			int max_period = est_period * (1 + ERROR_RATE);
 
 			for (est_period = min_period; est_period <= max_period; ++est_period) { //Try all possible values for period
-				int length = 1;
+				int length = 0;
 				Vector<int, MAX_BUS> visited_tmp;
 
 				visited_tmp.push_back(i);
-				visited_tmp.push_back(j);
 
 				//Measure the pattern length for period with jth item (estimated period <- temparr[j])
-				for (int k = j + 1; k < temparr.size(); ++k) {
+				for (int k = j; k < temparr.size(); ++k) {
 					if (marks[k]) continue;
 
 					int expected_time = (length + 1) * est_period;
 					int err = est_period * ERROR_RATE;
 
 					if (temparr[k] > expected_time + err) break; //There is no possible value for rest of the array
-					else if (temparr[k] <= expected_time + err && temparr[k] >= expected_time - err) {
+					else if (temparr[k] >= expected_time - err) {
 						length++;
 						visited_tmp.push_back(k);
 					}
 				}
 
 				//Set the period for the pattern with maximum length
-				if (length > maxlen) { maxlen = length; visited = visited_tmp; period = est_period; }
+				if (length > maxlen) { 
+					maxlen = length; 
+					visited = visited_tmp; 
+					period = est_period; 
+				}
 			}
 		}
 
@@ -459,11 +587,13 @@ void extract_regular_groups(Vector<Vector<int, MAX_BUS>, MAX_GROUP>& groups, Vec
 
 int main() {
 	Vector<int, MAX_BUS> periods;
-	Vector<Vector<int, MAX_BUS>, MAX_GROUP> main_groups_recurring;
 	Vector<Vector<int, MAX_BUS>, MAX_GROUP> main_groups_regular;
+
+	Vector<Vector<int, MAX_BUS>, MAX_GROUP> main_groups_recurring;
 	Vector<Vector<int, MAX_GROUP>, MAX_GROUP> recurring_groups;
 
-	
+	Vector<Vector<int, MAX_GROUP>, MAX_GROUP> recurring_distant_groups;
+	Vector<Vector<int, MAX_BUS>, MAX_GROUP> main_distant_groups_recurring;
 
 	read_input();
 	for (int i = 0; i < times.size(); ++i)
@@ -480,6 +610,16 @@ int main() {
 		for (int j = 0; j < recurring_groups[i].size(); ++j) {
 			for (int k = 0; k < main_groups_recurring[recurring_groups[i][j]].size(); ++k) {
 				marks[main_groups_recurring[recurring_groups[i][j]][k]] = true;
+			}
+		}
+	}
+
+	extract_recurring_distant_groups(main_distant_groups_recurring, recurring_distant_groups);
+
+	for (int i = 0; i < recurring_distant_groups.size(); ++i) {
+		for (int j = 0; j < recurring_distant_groups[i].size(); ++j) {
+			for (int k = 0; k < main_distant_groups_recurring[recurring_distant_groups[i][j]].size(); ++k) {
+				marks[main_distant_groups_recurring[recurring_distant_groups[i][j]][k]] = true;
 			}
 		}
 	}
