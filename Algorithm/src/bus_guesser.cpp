@@ -1,15 +1,18 @@
 #include <iostream>
+#include <unordered_map>
+
 #include "vector.h"
 #include "list.h"
 
 #define MAX_PULSE 50
-#define MAX_GROUP 300
+#define MAX_GROUP MAX_PULSE*2
 
 #define ERROR_RATE 0.1f
 #define RATE_OF_CHANGE 0.05f
 
 #define MAX_GROUP_DISTANCE 250
 #define MIN_GROUP_SIZE 3
+#define MAX_STAGGER_PERIOD 200
 
 #define DEBUG false
 #define PRINT_GROUPS false
@@ -74,8 +77,25 @@ int average_period(Vector<int, MAX_PULSE>& group) {
 	return ((float)sum / group.size() + 0.5f);
 }
 
+//Groups are always in sorted order
+bool intersection_empty(Vector<int, MAX_PULSE> arr1, Vector<int, MAX_PULSE> arr2) {
+	int i = 0; 
+	int j = 0;
+
+	while (i < arr1.size() && j < arr2.size()) {
+		if (arr1[i] < arr2[j]) 
+			i++;
+		else if (arr2[j] < arr1[i]) 
+			j++;
+		else 
+			return false; 
+	}
+
+	return true; // No common element found
+}
+
 void extract_increasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups) {
-	Vector<bool, MAX_PULSE> marks; for (int i = 0; i < MAX_PULSE; ++i) marks.push_back(false);
+	//Vector<bool, MAX_PULSE> marks; for (int i = 0; i < MAX_PULSE; ++i) marks.push_back(false);
 	
 	for (int i = 0; i < times.size(); ++i) {
 		if (marks[i]) continue;
@@ -100,7 +120,7 @@ void extract_increasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			int est_period = temparr[j];
 			int prev = temparr[j];
 
-			int length = 1;
+			int length = 2;
 
 			Vector<int, MAX_PULSE> visited_tmp;
 			visited_tmp.push_back(i);
@@ -129,19 +149,20 @@ void extract_increasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			}
 		}
 
-		if (maxlen < 2) continue;
+		if (maxlen < 4) continue;
 
 		for (int j = 0; j < visited.size(); ++j) {
 			if (DEBUG) std::cout << times[visited[j]] << ", ";
-			marks[visited[j]] = true;
+			//marks[visited[j]] = true;
 		} if (DEBUG) std::cout << std::endl << std::endl;
 
-		groups.push_back(visited);
+		if (abs(average_increasing_rate(visited)) > 0.1)
+			groups.push_back(visited);
 	}
 }
 
 void extract_decreasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups) {
-	Vector<bool, MAX_PULSE> marks; for (int i = 0; i < MAX_PULSE; ++i) marks.push_back(false);
+	//Vector<bool, MAX_PULSE> marks; for (int i = 0; i < MAX_PULSE; ++i) marks.push_back(false);
 
 	for (int i = 0; i < times.size(); ++i) {
 		if (marks[i]) continue;
@@ -166,7 +187,7 @@ void extract_decreasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			int est_period = temparr[j];
 			int prev = temparr[j];
 
-			int length = 1;
+			int length = 2;
 
 			Vector<int, MAX_PULSE> visited_tmp;
 			visited_tmp.push_back(i);
@@ -195,19 +216,20 @@ void extract_decreasing_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			}
 		}
 
-		if (maxlen == 0) continue;
+		if (maxlen < 4) continue;
 
 		for (int j = 0; j < visited.size(); ++j) {
 			if (DEBUG) std::cout << times[visited[j]] << ", ";
-			marks[visited[j]] = true;
+		    //marks[visited[j]] = true;
 		} if (DEBUG) std::cout << std::endl << std::endl;
 
+		
 		groups.push_back(visited);
 	}
 }
 
 void extract_recurring_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
-	for (int i = 0; i < times.size(); ++i) {
+	/*for (int i = 0; i < times.size(); ++i) {
 		if (marks[i]) continue;
 		
 		int maxlen = 0;
@@ -312,10 +334,13 @@ void extract_recurring_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups,
 		} if (DEBUG) std::cout << std::endl << std::endl;
 
 		//groups.push_back(visited);
-	}
+	}*/
+	
+	extract_increasing_groups(groups);
+	extract_decreasing_groups(groups);
 
 	if (PRINT_GROUPS) {
-		std::cout << "GROUPS:" << std::endl;
+		std::cout << "SLIDING GROUPS:" << std::endl;
 		for (int i = 0; i < groups.size(); ++i) {
 			std::cout << "index: " << i << " -- >";
 			for (int j = 0; j < groups[i].size(); ++j) {
@@ -324,16 +349,22 @@ void extract_recurring_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups,
 			std::cout << std::endl;
 		}
 	}
-		
+	
 	Vector<int, MAX_GROUP> group_periods;
 	Vector<bool, MAX_GROUP> group_marks;
 
 	for (int i = 0; i < groups.size(); ++i) group_marks.push_back(false);
-	
+
 	// Find matching groups for the i'th group
 	for (int i = 0; i < groups.size(); ++i) { 
 		if (group_marks[i]) continue;
 		
+		bool contains_marked_element = false;
+		for (int j = 0; j < group_marks.size(); ++j) 
+			if (group_marks[j] && !intersection_empty(groups[j], groups[i])) contains_marked_element = true;
+		
+		if (contains_marked_element) continue;
+
 		int maxlen = 0;
 		double avg_incr = average_increasing_rate(groups[i]);
 		int avg_period = average_period(groups[i]);
@@ -389,7 +420,7 @@ void extract_recurring_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups,
 		groups2.push_back(visited_group);
 	}
 
-	std::cout << "GROUP COUNT: " << groups2.size() << std::endl;
+	std::cout << "SLIDING GROUP COUNT: " << groups2.size() << std::endl;
 	for (int i = 0; i < groups2.size(); ++i) {
 		std::cout << "AVERAGE INCREASING RATE:" << group_periods[i] << std::endl;
 		for (int j = 0; j < groups2[i].size(); ++j) {
@@ -401,6 +432,7 @@ void extract_recurring_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups,
 		
 		std::cout << std::endl;
 	}
+	std::cout << std::endl;
 }
 
 void extract_recurring_distant_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
@@ -470,6 +502,7 @@ void extract_recurring_distant_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>&
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
 
 	Vector<bool, MAX_GROUP> group_marks;
 
@@ -531,7 +564,7 @@ void extract_recurring_distant_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>&
 		groups2.push_back(visited_group);
 	}
 
-	std::cout << "GROUP COUNT: " << groups2.size() << std::endl;
+	std::cout << "DWELL&SWITCH GROUP COUNT: " << groups2.size() << std::endl;
 	for (int i = 0; i < groups2.size(); ++i) {
 		for (int j = 0; j < groups2[i].size(); ++j) {
 			for (int k = 0; k < groups[groups2[i][j]].size(); ++k) {
@@ -542,7 +575,7 @@ void extract_recurring_distant_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>&
 
 		std::cout << std::endl;
 	}
-
+	std::cout << std::endl;
 }
 
 void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups, Vector<Vector<int, MAX_GROUP>, MAX_GROUP>& groups2) {
@@ -566,7 +599,7 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 		}
 
 		for (int j = i + 3; j < temparr.size(); ++j) {
-			if (marks[j]) continue;
+			if (marks[j] || times[j] - times[i] > MAX_STAGGER_PERIOD) continue;
 
 			int est_period = temparr[j];
 			int prev = temparr[j];
@@ -591,6 +624,16 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 
 			est_period = times[visited_tmp[1]] - times[visited_tmp[0]];
 
+			for (int k = 0; k < groups.size(); ++k) {
+				if (groups[k].size() == visited_tmp.size() && est_period == periods[k]) {
+					maxlen = 0;
+					length = 0;
+					periods.push_back(est_period);
+					groups.push_back(visited_tmp);
+					break;
+				}
+			}
+
 			if (length >= 2 && est_period > period) {
 				period = est_period;
 				visited = visited_tmp;
@@ -605,7 +648,7 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 	}
 
 	if (PRINT_GROUPS) {
-		std::cout << "GROUPS:" << std::endl;
+		std::cout << "STAGGER GROUPS:" << std::endl;
 		for (int i = 0; i < groups.size(); ++i) {
 			std::cout << "index: " << i << " period " << periods[i] << " -- >";
 			for (int j = 0; j < groups[i].size(); ++j) {
@@ -614,6 +657,7 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			std::cout << std::endl;
 		}
 	}
+	std::cout << std::endl;
 
 	Vector<bool, MAX_GROUP> group_marks;
 
@@ -625,6 +669,8 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 		visited.push_back(i);
 
 		for (int j = i + 1; j < groups.size(); ++j) {
+			if (groups[i].size() != groups[j].size()) continue;
+
 			if (periods[i] == periods[j])
 				visited.push_back(j);
 		}
@@ -634,6 +680,25 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			groups2.push_back(visited);
 		}
 	}
+
+	for (int i = 0; i < groups.size(); ++i) {
+		if (group_marks[i]) continue;
+		Vector<int, MAX_GROUP> visited;
+		visited.push_back(i);
+
+		for (int j = i + 1; j < groups.size(); ++j) {
+			if (groups[i].size() != groups[j].size()) continue;
+
+			if (periods[i] == periods[j])
+				visited.push_back(j);
+		}
+
+		for (int j = 0; j < visited.size(); ++j) group_marks[visited[j]] = true;
+		if (visited.size() >= 3) {
+			groups2.push_back(visited);
+		}
+	}
+
 
 	/*std::cout << "GROUP COUNT: " << groups2.size() << std::endl;
 	for (int i = 0; i < groups2.size(); ++i) {
@@ -647,6 +712,7 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 		std::cout << std::endl;
 	}*/
 
+	std::cout << "STAGGER GROUP COUNT: " << groups2.size() << std::endl;
 	for (int i = 0; i < groups2.size(); ++i) {
 		Vector<int, MAX_GROUP>& curgroup = groups2[i];
 		for (int j = 0; j < groups[curgroup[0]].size(); ++j) {
@@ -655,6 +721,7 @@ void extract_staggering_groups(Vector<Vector<int, MAX_PULSE>, MAX_GROUP>& groups
 			}
 			std::cout << " | ";
 		}
+		std::cout << std::endl;
 	}
 	
 }
@@ -746,10 +813,11 @@ int main() {
 	//std::cout << "P[n] = " << p << std::endl;
 	//preprocess_times();
 
-	extract_recurring_groups(main_groups_recurring, recurring_groups);
-
 	//Clear marks and mark only recurring groups
 	for (int i = 0; i < marks.size(); ++i) marks[i] = false;
+
+	
+	extract_recurring_groups(main_groups_recurring, recurring_groups);
 
 	for (int i = 0; i < recurring_groups.size(); ++i) {
 		for (int j = 0; j < recurring_groups[i].size(); ++j) {
@@ -778,7 +846,6 @@ int main() {
 			}
 		}
 	}
-
 
 	std::cout << std::endl << std::endl;
 
