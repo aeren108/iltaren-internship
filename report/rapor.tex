@@ -6,10 +6,12 @@
 \usepackage{float}
 \usepackage{titlesec}
 \usepackage{tabularx}
+\usepackage{relsize}
 
 \graphicspath{ {./images/} }
 \newgeometry{vmargin={15mm}, hmargin={28mm,28mm}}
 \titleformat{\chapter}{\normalfont\huge}{\bf\thechapter.}{18pt}{\huge\bf}
+\newcommand\ddfrac[2]{\frac{\displaystyle #1}{\displaystyle #2}}
 
 \begin{document}
 
@@ -128,7 +130,7 @@
     \section{Longest Path in a Graph}
         \subsection{Analysis Phase}
 
-            \textbf{Problem Definition:} There exists a CSV file which contains distances from 81 cities of Turkey to all cities in Turkey. 
+            \textbf{Problem Definition:} There exists a CSV file which contains distances from 81 cities of Turkey to all other 81 cities in Turkey. 
             Using this distance matrix read from that CSV file, you are expected to compute the maximum amount of city that can be traveled 
             (without visiting a city twice) only using the roads which its distances are in the interval of $[x-y, x+y]$. The values $x$ (distance) and $y$ (tolerance) 
             are given by the user.
@@ -155,7 +157,7 @@
                 ...
             \end{verbatim}
 
-            When the distances which does not fit in the interval of $[x-y, x+y]$ are replaced with the zero $0$ and the rest is set to one $(1)$, distance matrix becomes into a 
+            When the distances which does not fit in the interval of $[x-y, x+y]$ are replaced with the zero $(0)$ and the rest is set to one $(1)$, distance matrix becomes into a 
             adjacency matrix of an unweighted graph. Then the goal becomes into computing the longest path in that graph. How dense or how sparse the graph is controlled by the 
             tolerance variable ($y$), and combinations of edges in the graph is adjusted by the distance variable ($x$).
             
@@ -189,10 +191,44 @@
 
             First thing I thought was the direct neighbour count of the vertices. Idea of choosing the vertex with the most neighbours leads to longer paths, seems reasonable at 
             first sight but it is not. Because choosing the vertices with most neighbours repetitevely, leaves out the vertices with few neighbours. That makes it hard for visiting
-            vertices with few connections in the future. Although this heuristic does not seem useful right now, it can be helpful as I am going to explain later.
+            vertices with few connections in the future. Although this heuristic does not seem useful right now, it can be helpful for the solution of the problem as I am going to 
+            explain later.
+
+            Since count of direct neighbours is known to be a poor choice of heuristic for finding long paths, it can be thought that maximum count of second order neighbours may 
+            perform better. Maximum count of second order neighbours, is the maximum of count of direct neighbours which a vertex's direct neighbour has. On average, it actually 
+            performs better than the count of direct neighbours.
+
+            Observation of the increase in the performance with the looking deeper in the graph for the count of neighbours, leads to trial of maximum count of the third and forth order neighbour 
+            counts. Maximum count of third order neighbours, is the maximum of count of second order neighbours which a vertex's direct neighbour has. Same idea applies for the
+            definition of the forth order neighbours. Although choosing the heuristic as the maximum count of third order neighbours performs better than the heuristic of maximum 
+            count of the second order neighbours, when heuristic is chosen to be the maximum count of the forth order neighbours it performs poorer than the third order one. 
+            Decrease in the performance continues as the order of neighbours are increased which is used in the heuristic.
+        
+            Since heuristics related to neigbour counts can not be improved any more, I looked for different kinds of metrics of graphs. Centrality metrics which gives information
+            about the positions of vertices in the graph, may be useful for finding long paths. Motivation of using indicators of centrality originates from the idea that long paths
+            tend to contain more vertices which are positioned at the central regions of the graph.   
+
+            Closeness centrality is one of the methods to measure centrality of a vertex in a graph. Closeness centrality or closeness of a vertex is the average length of the 
+            shortest path between the vertex and all other vertices in the graph. Thus the more central a vertex is, the closer it is to all other nodes.
+            Closeness centrality of a vertex $v$ is computed as below where $d(u,v)$ is the shortest distance between vertices $u$ and $v$:
+            
+            \begin{equation}
+                C(v) = \ddfrac{1}{\sum_{u \in V} d(u,v)}
+            \end{equation}
+            \bigskip
+
+            Another measure of centrality is the betweenness centrality. Betweenness centrality is the measurement of how many times a vertex acts as a bridge between shortest 
+            path of any two vertices in the graph. Vertices which are at the central regions tend to be contained in many paths in the graph, because of this number of times a
+            vertex being in any paths in graph is a measurement of centrality. Betwenness centrality of vertex $v$ is computed as below, where $\sigma_{st}$ indicates the total
+            number of shortest paths from node $s$ to $t$ and $\sigma_{st}(v)$ is the number of those paths which contains vertex $v$.
+
+            \begin{equation}
+                C_B(v) = \sum_{s \neq t \neq v \in V} \ddfrac{\sigma_{st}(v)}{\sigma_{st}}
+            \end{equation}
+
+            \bigskip
 
             
-
         \subsection{Implementation Phase}
 
         \subsection{Testing Phase}

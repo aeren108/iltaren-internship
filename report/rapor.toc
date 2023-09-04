@@ -10,15 +10,15 @@
 \contentsline {section}{\numberline {3.1}Longest Path in a Graph}{8}{}%
 \contentsline {subsection}{\numberline {3.1.1}Analysis Phase}{8}{}%
 \contentsline {subsection}{\numberline {3.1.2}Design Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.1.3}Implementation Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.1.4}Testing Phase}{9}{}%
-\contentsline {section}{\numberline {3.2}Radar Pulse De-interleaving}{9}{}%
-\contentsline {subsection}{\numberline {3.2.1}Analysis Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.2.2}Design Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.2.3}Implementation Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.2.4}Testing Phase}{9}{}%
-\contentsline {chapter}{\numberline {4}Organization}{10}{}%
-\contentsline {section}{\numberline {4.1}Organization and Structure}{10}{}%
-\contentsline {section}{\numberline {4.2}Methodologies and Strategies Used in the Company}{10}{}%
-\contentsline {chapter}{\numberline {5}Conclusion}{11}{}%
-\contentsline {chapter}{\numberline {6}Appendix}{12}{}%
+\contentsline {subsection}{\numberline {3.1.3}Implementation Phase}{10}{}%
+\contentsline {subsection}{\numberline {3.1.4}Testing Phase}{10}{}%
+\contentsline {section}{\numberline {3.2}Radar Pulse De-interleaving}{10}{}%
+\contentsline {subsection}{\numberline {3.2.1}Analysis Phase}{10}{}%
+\contentsline {subsection}{\numberline {3.2.2}Design Phase}{10}{}%
+\contentsline {subsection}{\numberline {3.2.3}Implementation Phase}{10}{}%
+\contentsline {subsection}{\numberline {3.2.4}Testing Phase}{10}{}%
+\contentsline {chapter}{\numberline {4}Organization}{11}{}%
+\contentsline {section}{\numberline {4.1}Organization and Structure}{11}{}%
+\contentsline {section}{\numberline {4.2}Methodologies and Strategies Used in the Company}{11}{}%
+\contentsline {chapter}{\numberline {5}Conclusion}{12}{}%
+\contentsline {chapter}{\numberline {6}Appendix}{13}{}%
