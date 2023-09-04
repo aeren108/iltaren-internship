@@ -125,15 +125,86 @@
     
 
 \chapter{Project}
+    \section{Longest Path in a Graph}
+        \subsection{Analysis Phase}
 
-    \section{Analysis Phase}
+            \textbf{Problem Definition:} There exists a CSV file which contains distances from 81 cities of Turkey to all cities in Turkey. 
+            Using this distance matrix read from that CSV file, you are expected to compute the maximum amount of city that can be traveled 
+            (without visiting a city twice) only using the roads which its distances are in the interval of $[x-y, x+y]$. The values $x$ (distance) and $y$ (tolerance) 
+            are given by the user.
+            \newline
 
-    \section{Design Phase}
+            Example CSV file format:
 
-    \section{Implementation Phase}
+            \begin{verbatim}
+                ADANA;ADIYAMAN;AFYONKARAHISAR;AGRI;AMASYA;ANKARA;  ...
+                01;ADANA;0;338;579;978;604;492;548;1005;881;903;78 ...
+                02;ADIYAMAN;338;0;917;646;628;738;886;717;1219;124 ...
+                03;AFYONKARAHISAR;579;917;0;1320;596;255;287;1225; ...
+                04;AGRI;978;646;1320;0;740;1056;1426;365;1635;1576 ...
+                05;AMASYA;604;628;596;740;0;331;824;679;936;842;62 ...
+                06;ANKARA;492;738;255;1056;331;0;543;960;596;536;3 ...
+                07;ANTALYA;548;886;287;1426;824;543;0;1433;346;506 ...
+                08;ARTVIN;1005;717;1225;365;679;960;1433;0;1565;14 ...
+                09;AYDIN;881;1219;340;1635;936;596;346;1565;0;291; ...
+                10;BALIKESIR;903;1241;324;1576;842;536;506;1452;29 ...
+                11;BILECIK;786;1039;207;1361;626;314;473;1236;525; ...
+                12;BINGOL;633;348;1099;352;642;889;1191;373;1401;1 ...
+                13;BITLIS;746;414;1290;232;833;1080;1294;547;1592; ...
+                14;BOLU;689;927;417;1146;411;190;683;1021;735;431; ...
+                ...
+            \end{verbatim}
 
-    \section{Testing Phase}
+            When the distances which does not fit in the interval of $[x-y, x+y]$ are replaced with the zero $0$ and the rest is set to one $(1)$, distance matrix becomes into a 
+            adjacency matrix of an unweighted graph. Then the goal becomes into computing the longest path in that graph. How dense or how sparse the graph is controlled by the 
+            tolerance variable ($y$), and combinations of edges in the graph is adjusted by the distance variable ($x$).
+            
+            Finding an exact solution to this problem requires comparing all different 
+            permutations of cities and checking whether they form a path. This process requires comparison of $n!$ different orderings. Therefore it is not possible
+            to find an exact solution to this problem in a polynomial time. When the case with our problem is considered where $n=81$ and $n! \approx 5.8\cdot 10^{120}$,
+            computation of an exact solution may take many months even for a modern computer.
 
+            Therefore, computing an approximate solution in polynomial time rather than an exact solution is much more feasible. To compute an approximation of the
+            longest path, I decided to follow a heuristic approach where the locally optimum neighbouring city is chosen to continue with at each iteration. This therefore
+            raises the question of what kind of heuristics should be used for choosing an ideal local optimum at each step ?
+
+        \subsection{Design Phase}
+            
+            Assume that we are looking for a long path in the unweighted and undirected graph $G=(V,E)$, starting from the vertex $s \in V$. Let $N$ be the set of all vertices
+            which have an edge with vertex $s$, in other words $N$ is the set of neighbours of $s$. 
+            \newline
+
+            Then the process of approximating a long path in graph $G$ follows as:
+
+            \begin{enumerate}
+                \item Compute a score value for each vertex in $N$.
+                \item Choose the vertex with the maximum score.
+                \item Update $N$ as the set of neighbours of the chosen vertex.
+                \item Go to $1$ until there is no vertex left to visit.
+            \end{enumerate}
+
+            Computing the score for a vertex is the most critical task which entirely determines the performance of the algortihm and the length of the approximated path. 
+            Heuristic functions should be chosen such that even when the graph is sparse (which means tolerance variable $y$, is low) algorithm should not perform poorly. 
+            \newline
+
+            First thing I thought was the direct neighbour count of the vertices. Idea of choosing the vertex with the most neighbours leads to longer paths, seems reasonable at 
+            first sight but it is not. Because choosing the vertices with most neighbours repetitevely, leaves out the vertices with few neighbours. That makes it hard for visiting
+            vertices with few connections in the future. Although this heuristic does not seem useful right now, it can be helpful as I am going to explain later.
+
+            
+
+        \subsection{Implementation Phase}
+
+        \subsection{Testing Phase}
+
+    \section{Radar Pulse De-interleaving}
+        \subsection{Analysis Phase}
+
+        \subsection{Design Phase}
+
+        \subsection{Implementation Phase}
+
+        \subsection{Testing Phase}
 
 \chapter{Organization}
 
