@@ -190,7 +190,7 @@
             \newline
 
             First thing I thought was the direct neighbour count of the vertices. Idea of choosing the vertex with the most neighbours leads to longer paths, seems reasonable at 
-            first sight but it is not. Because choosing the vertices with most neighbours repetitevely, leaves out the vertices with few neighbours. That makes it hard for visiting
+            first sight however it is not. Because choosing the vertices with most neighbours repetitevely, leaves out the vertices with few neighbours. That makes it hard for visiting
             vertices with few connections in the future. Although this heuristic does not seem useful right now, it can be helpful for the solution of the problem as I am going to 
             explain later.
 
@@ -198,7 +198,7 @@
             perform better. Maximum count of second order neighbours, is the maximum of count of direct neighbours which a vertex's direct neighbour has. On average, it actually 
             performs better than the count of direct neighbours.
 
-            Observation of the increase in the performance with the looking deeper in the graph for the count of neighbours, leads to trial of maximum count of the third and forth order neighbour 
+            Observation of the increase in the performance with looking deeper in the graph for the count of neighbours, leads to trial of maximum count of the third and forth order neighbour 
             counts. Maximum count of third order neighbours, is the maximum of count of second order neighbours which a vertex's direct neighbour has. Same idea applies for the
             definition of the forth order neighbours. Although choosing the heuristic as the maximum count of third order neighbours performs better than the heuristic of maximum 
             count of the second order neighbours, when heuristic is chosen to be the maximum count of the forth order neighbours it performs poorer than the third order one. 
@@ -212,6 +212,7 @@
             shortest path between the vertex and all other vertices in the graph. Thus the more central a vertex is, the closer it is to all other nodes.
             Closeness centrality of a vertex $v$ is computed as below where $d(u,v)$ is the shortest distance between vertices $u$ and $v$:
             
+            \bigskip
             \begin{equation}
                 C(v) = \ddfrac{1}{\sum_{u \in V} d(u,v)}
             \end{equation}
@@ -222,13 +223,32 @@
             vertex being in any paths in graph is a measurement of centrality. Betwenness centrality of vertex $v$ is computed as below, where $\sigma_{st}$ indicates the total
             number of shortest paths from node $s$ to $t$ and $\sigma_{st}(v)$ is the number of those paths which contains vertex $v$.
 
+            \bigskip
             \begin{equation}
                 C_B(v) = \sum_{s \neq t \neq v \in V} \ddfrac{\sigma_{st}(v)}{\sigma_{st}}
             \end{equation}
-
             \bigskip
 
+            \begin{figure}[h]
+                \includegraphics[scale=0.25]{betweennes-centrality}
+                \centering
+                \caption{Betweenness centrality of vertices in a graph}
+            \end{figure}
+            \bigskip
+
+            Apart from the centrality metrics, another heuristic approach for searching long paths could be considering the total length up to vertices which are available to be chosen.
+            Rationale for this method is that as algorithm iterates further, it may get harder to visit closer vertices to the starting vertex of the travel. 
+            Therefore choosing the vertex which is closest to starting vertex may lead to longer paths.
             
+            An alternative of distance to starting vertex heuristic is considering the distance to previously visited vertex. Aim is to choosing the vertex which is closest to previously
+            visited vertex, thus leading a long path in graph. Downside of this heuristic compared to distance to previous heuristic is that there are only two score values for a vertex.
+            The score is either $1$ or $2$. Because, score of a vertex is $1$ if and only if a vertex has a direct edge with the previously visited vertex. Otherwise it's score is always $2$, 
+            since shortest path from that vertex to previously visited vertes has to contain only the current vertex of the iteration. Therefore this approach may fail to distinguish multiple
+            neighbours of a vertex, when compared with the distance to previous heuristic.
+            \newline
+
+
+
         \subsection{Implementation Phase}
 
         \subsection{Testing Phase}
