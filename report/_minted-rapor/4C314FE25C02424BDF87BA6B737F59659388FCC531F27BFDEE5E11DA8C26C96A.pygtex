@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{class}\PYG{+w}{ }\PYG{n+nc}{LocalOptima}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+\PYG{k}{public}\PYG{o}{:}
+\PYG{+w}{    }\PYG{k}{virtual}\PYG{+w}{ }\PYG{k+kt}{double}\PYG{+w}{ }\PYG{n}{score}\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{node}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{bool}\PYG{p}{[]}\PYG{+w}{ }\PYG{n}{visited}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{p}{[][]}\PYG{+w}{ }\PYG{n}{adjmatrix}\PYG{p}{)}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{l+m+mi}{0}\PYG{p}{;}
+\PYG{p}{\PYGZcb{};}
+\end{Verbatim}

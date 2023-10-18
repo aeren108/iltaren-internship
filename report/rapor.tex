@@ -7,11 +7,23 @@
 \usepackage{titlesec}
 \usepackage{tabularx}
 \usepackage{relsize}
+\usepackage{xparse}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{float}
+
+\NewDocumentCommand{\codeword}{v}{%
+\texttt{\textcolor{blue}{#1}}%
+}
+
+\lstset{language=C,keywordstyle={\bfseries \color{blue}}}
 
 \graphicspath{ {./images/} }
 \newgeometry{vmargin={15mm}, hmargin={28mm,28mm}}
 \titleformat{\chapter}{\normalfont\huge}{\bf\thechapter.}{18pt}{\huge\bf}
 \newcommand\ddfrac[2]{\frac{\displaystyle #1}{\displaystyle #2}}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 
 \begin{document}
 
@@ -242,19 +254,228 @@
             
             An alternative of distance to starting vertex heuristic is considering the distance to previously visited vertex. Aim is to choosing the vertex which is closest to previously
             visited vertex, thus leading a long path in graph. Downside of this heuristic compared to distance to previous heuristic is that there are only two score values for a vertex.
-            The score is either $1$ or $2$. Because, score of a vertex is $1$ if and only if a vertex has a direct edge with the previously visited vertex. Otherwise it's score is always $2$, 
+            The score is either $1$ or $2$ for any vertex. Because, score of a vertex is $1$ if and only if a vertex has a direct edge with the previously visited vertex. Otherwise it's score is always $2$, 
             since shortest path from that vertex to previously visited vertes has to contain only the current vertex of the iteration. Therefore this approach may fail to distinguish multiple
             neighbours of a vertex, when compared with the distance to previous heuristic.
             \newline
 
+            To benefit from different aspects of all heuristics mentioned above, linear combination of heuristic functions can be used for computing a score for vertices. Since, it is known that visiting
+            vertices with the most direct neigbour counts performs poorly, weight of this function may be set to a negative value. As a result of trial and error, best performing weights and functions are
+            found to be as below where $H_{LC}$ corresponds to heuristic function of the linear combination, $H_{N1}$ corresponds to heuristic function of first order neigbours, $H_{CC}$ corresponds to
+            heuristic function of closeness centrality, $H_{N3}$ corresponds to heuristic function of third order neighbours and $H_{DS}$ corresponds to heuristic function of distance to start.
 
+            \begin{equation}
+                H_{LC}(v) = -0.1\cdot H_{N1} + 0.2\cdot H_{N3} + 0.5\cdot H_{CC} + 0.1\cdot H_{DS}
+            \end{equation}
 
         \subsection{Implementation Phase}
+            Algorithm iterates as choosing a predicted locally optimum vertex among the neighbouring vertices of the starting vertex, then repeating the same process with the chosen vertex. 
+            Therefore, a recursive function can be written to accomplish entire process as in the example below.
+
+            \begin{minted}[gobble=20]{cpp}
+                    int find_max_travel(int start, bool[] visited, int[][] adjmatrix) {
+                        visited[start] = true; //Mark currently visited vertex
+
+                        int max_vertex = -1; double max_score = 0;
+                        //Iterate all neighbours of starting vertex
+                        for (int i = 0; adj_matrix[start][i] && i < SIZE; ++i) {
+                            if (visited[i]) continue; // Skip visited vertices
+
+                            //Compute a score for i'th vertex
+                            double score = score(i, visited, adjmatrix); 
+                            if (score > max_score) { //Set the vertex with the max score
+                                max_score = score;
+                                max_vertex = i;
+                            }
+                        }
+
+                        if (max_vertex != -1) //If a vertex found, continue with it
+                            return 1 + find_max_travel(max_vertex,visited, adjmatrix);
+                        return 1; //If not found return 1
+                    }
+            \end{minted}
+
+            The most crucial part of the algorithm is the behaviour of the \codeword{score()} function which solely determines the city to be selected. Therefore different choice of heuristics 
+            for the score function are going to yield different outputs. 
+            
+            I implemented an abstract class representing the behaviour of the score function called \codeword{LocalOptima} which only has
+            a single abstract function which is the \codeword{score()} function. 
+
+            \begin{minted}[gobble=16]{cpp}
+                class LocalOptima {
+                public:
+                    virtual double score(int node, bool[] visited, int[][] adjmatrix) = 0;
+                };
+            \end{minted}
+
+            All of the heuristic functions are implemented as the child class of the \codeword{LocalOptima} class.
+
+            \begin{minted}[gobble=16]{cpp}
+                class FirstOrderNeighbors : public LocalOptima {
+                public:
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        int neighbours = 0;
+                        for (int i = 0; i < SIZE; ++i) {
+                            if (adjmatrix[node][i] && i != node && !visited[i]) neighbours++;
+                        }
+
+                        return neighbours;
+                                        
+                };
+
+                /*  Implementation of the second and third order neighbours 
+                    are similar to the first orders */
+
+                class SecondOrderNeighbors : public LocalOptima {
+                public:
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        /*  Return the maximum amount of 'neighbur_count(v, ...)'
+                            which a direct neighbour v of the node has */
+                    }
+                private:
+                    //Returns the count of the first order neighbours of the node 
+                    int neighbour_count(int node, bool[] visited, int[][] adjmatrix) {}
+                };
+
+                class ThirdOrderNeighbors : public LocalOptima {
+                public:
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        /*  Return the maximum amount of 'neighbour_count2(v, ...)' 
+                            which a direct neighbour v of the node has */
+                    }
+                private:
+                    //Returns the count of the second order neighbours of the node 
+                    int neighbour_count2(int node, bool[] visited, int[][] adjmatrix) {}
+                };
+            \end{minted}
+
+            To compute closeness, betweenness centralities and other heuristics, shortest path between any two nodes must be computed. Since our graph is 
+            unweighted, shortest paths can be computed with breadth first search.
+
+            \begin{minted}[gobble=16]{cpp}
+                class ClosenessCentrality : public LocalOptima {
+                public:
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        int* dists = compute_distances(node, adjmatrix); int sum = 0;
+                        for (int length : dists) sum += length;
+                        return 1.0 / sum;
+
+                    }
+                private:
+                    int* compute_distances(int start, int[][] adjmatrix) {
+                        static int[] distances; //Array of distances to each city
+
+                        for (int i : distances) {
+                            //Start breadth first search from 'start' stop when node 'i' encountered
+                            //Store the path length in the i'th element in the array
+                            distances[i] = path_length;
+                        }
+                        return distances;
+                    }
+                };
+
+                class BetweennessCentrality : public LocalOptima {
+                public:
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        int total = 0, containing = 0;
+                        for (int i = 0; i < SIZE; ++i) {
+                            for (int j = 0; j < SIZE; ++j) {
+                                // Loop through every city pair (i, j)
+                                if (path_contains_node(node, i, j, adjmatrix)) containing++;
+                                total++;
+                            }
+                        }
+                        return containing / total;
+                    }
+                private:
+                    int path_contains_node(int node, int start, int end, int[][] adjmatrix) {
+                        /*  Start breadth first search from 'start' and stop when 'end' 
+                            node is encountered. If 'node' is encountered during this search
+                            return 1 else 0;
+                        */
+                    }
+                };
+
+                class DistanceToStart : public LocalOptima {
+                public:
+                    DistanceToStart(int start = 25) : start(start) {}
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        int length = //find length with breadth search from node to start
+                        return 1.0 / length;
+                    }
+                    
+                    int start;
+                };
+            \end{minted}
+
+            Linear combination is the weighted sum of the four heuristics, therefore it takes an array of coefficients as parameter in its constructor. 
+
+            \begin{minted}[gobble=16]{cpp}
+                class LinearCombination : public LocalOptima {
+                public:
+                    LinearCombination(double weights[4], int start);
+                    double score(int node, bool[] visited, int[][] adjmatrix) {
+                        double sum = 0;
+                        for (int i = 0; i < 4; ++i) 
+                            sum += weights[i] * hs[i]->score(node, graph, visited);
+                        return sum;
+                    }
+                    
+                    double weights[4];
+                private:
+                    FirstOrderNeighbors h1; ThirdOrderNeighbors h2;
+                    ClosenessCentrality h3; DistanceToStart h4;
+                    LocalOptima* hs[4] = { &h1, &h2, &h3, &h4 };
+                };
+            \end{minted}
 
         \subsection{Testing Phase}
+            \begin{table}[H]
+                \centering
+                \begin{tabular}{|P{3.5cm}|P{3cm}|P{3cm}|P{3cm}|P{3cm}|}
+                \hline
+                    \textbf{Heuristic Function} & \textbf{Worst Case Complexity} & \textbf{City Count From Ankara} & \textbf{City Count From Istanbul} & \textbf{City Count From Izmir} \\ \hline
+                    First Order Neighbours & $O(n^3)$ & 21 & 16 & 25 \\ \hline
+                    Second Order Neighbours & $O(n^4)$ & 38 & 23 & 38 \\ \hline
+                    Third Order Neighbours & $O(n^5)$ & 55 & 53 & 46 \\ \hline
+                    Closeness Centrality & $O(n^4)$ & 60 & 48 & 39 \\ \hline
+                    Betweenness Centrality & $O(n^5)$ & 44 & 46 & 44 \\ \hline
+                    Distance to Previous & $O(n^4)$ & 14 & 18 & 22 \\ \hline
+                    Distance to \ \ \ \ Start & $O(n^3)$ & 14 & 23 & 22 \\ \hline
+                    Linear Combination & $O(n^5)$ & 76 & 55 & 50 \\ \hline
+                \end{tabular}
+                \caption{Longest path results with distance = 250, tolerance = 50}
+            \end{table}
 
+            \begin{table}[H]
+                \centering
+                \begin{tabular}{|P{3.5cm}|P{3cm}|P{3cm}|P{3cm}|P{3cm}|}
+                \hline
+                    \textbf{Heuristic Function} & \textbf{Worst Case Complexity} & \textbf{City Count From Ankara} & \textbf{City Count From Istanbul} & \textbf{City Count From Izmir} \\ \hline
+                    First Order Neighbours & $O(n^3)$ & 34 & 37 & 36 \\ \hline
+                    Second Order Neighbours & $O(n^4)$ & 50 & 50 & 40 \\ \hline
+                    Third Order Neighbours & $O(n^5)$ & 51 & 58 & 58 \\ \hline
+                    Closeness Centrality & $O(n^4)$ & 26 & 55 & 53 \\ \hline
+                    Betweenness Centrality & $O(n^5)$ & 54 & 46 & 56 \\ \hline
+                    Distance to Previous & $O(n^4)$ & 32 & 32 & 32 \\ \hline
+                    Distance to \ \ \ \ Start & $O(n^3)$ & 37 & 46 & 47 \\ \hline
+                    Linear Combination & $O(n^5)$ & 77 & 74 & 51 \\ \hline
+                \end{tabular}
+                \caption{Longest path results with distance = 350, tolerance = 50}
+            \end{table}
+            
     \section{Radar Pulse De-interleaving}
         \subsection{Analysis Phase}
+            \textbf{Problem Definition:} There exists an array of numbers where each number represents the arrival time of an individual radar pulse received from several sources. Task is to
+            determine different radars and which pulses belong to them. Radars may have different modulations such as stable, jittered, sliding, dwell and switch and staggered.
+
+            \begin{figure}[h]
+                \includegraphics[scale=0.275]{pri-modulations}
+                \centering
+                \caption{Radar modulations}
+            \end{figure}
+
+            
 
         \subsection{Design Phase}
 

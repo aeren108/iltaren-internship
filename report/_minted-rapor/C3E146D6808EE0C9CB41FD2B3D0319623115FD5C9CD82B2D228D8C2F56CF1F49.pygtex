@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n+nf}{find\PYGZus{}max\PYGZus{}travel}\PYG{p}{(}\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{start}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{+w}{ }\PYG{n}{prev}\PYG{p}{,}
+\PYG{+w}{                }\PYG{k+kt}{bool}\PYG{p}{[]}\PYG{+w}{ }\PYG{n}{visited}\PYG{p}{,}\PYG{+w}{ }\PYG{k+kt}{int}\PYG{p}{[][]}\PYG{+w}{ }\PYG{n}{adjacency\PYGZus{}matrix}\PYG{p}{)}\PYG{+w}{ }\PYG{p}{\PYGZob{}}
+
+\PYG{p}{\PYGZcb{}}
+\end{Verbatim}
