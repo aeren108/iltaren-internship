@@ -12,6 +12,9 @@
 \usepackage{listings}
 \usepackage{minted}
 \usepackage{float}
+\usepackage{fancyvrb}
+\usepackage{xcolor}
+\usepackage{pdfpages}
 
 \NewDocumentCommand{\codeword}{v}{%
 \texttt{\textcolor{blue}{#1}}%
@@ -27,29 +30,31 @@
 
 \begin{document}
 
-\begin{titlepage}
-    \vspace*{4cm}
-    \rule{\textwidth}{2px}
+% \begin{titlepage}
+%     \vspace*{4cm}
+%     \rule{\textwidth}{2px}
 
-    \begin{center}
-        \textbf{\huge{{Summer Practice Report }}}\par \vspace{0.2cm}
-        \textbf{\Large{{TÜBİTAK İLTAREN}}}\par
-    \end{center}
+%     \begin{center}
+%         \textbf{\huge{{Summer Practice Report }}}\par \vspace{0.2cm}
+%         \textbf{\Large{{TÜBİTAK İLTAREN}}}\par
+%     \end{center}
     
-    \rule{\textwidth}{2px}
+%     \rule{\textwidth}{2px}
     
-    \vspace{1cm}
+%     \vspace{1cm}
     
-    \begin{center}
-        \large{Ahmet Eren Çolak - 2587921}
-    \end{center}
+%     \begin{center}
+%         \large{Ahmet Eren Çolak - 2587921}
+%     \end{center}
 
-    \vspace{1.3cm}
+%     \vspace{1.3cm}
     
-    \vfill
-    \today
+%     \vfill
+%     \today
     
-\end{titlepage}
+% \end{titlepage}
+
+\includepdf[pages=-]{cover}
 
 \tableofcontents
 \listoffigures
@@ -320,6 +325,7 @@
                         }
 
                         return neighbours;
+                    }
                                         
                 };
 
@@ -466,31 +472,167 @@
             
     \section{Radar Pulse De-interleaving}
         \subsection{Analysis Phase}
-            \textbf{Problem Definition:} There exists an array of numbers where each number represents the arrival time of an individual radar pulse received from several sources. Task is to
+            \textbf{Problem Definition:} There exists an array of numbers where each number represents the arrival time of an individual radar pulse received from several sources. The task is to
             determine different radars and which pulses belong to them. Radars may have different modulations such as stable, jittered, sliding, dwell and switch and staggered.
 
             \begin{figure}[h]
                 \includegraphics[scale=0.275]{pri-modulations}
                 \centering
-                \caption{Radar modulations}
+                \caption{Radar modulation types}
             \end{figure}
+            \bigskip
 
-            
+            Pulse repetition interval (PRI) in radar is the time between consecutive radar pulse transmissions and is a critical parameter for determining a radar system's ability to distinguish between different targets.
+
+            Stable modulated pulses have a fixed pulse repetition interval (PRI) among all consecutive pulses. Staggered radar pulses have varying PRIs which the variation is periodic. Jittered modulation
+            introduces random deviations to the PRI. Sliding radar pulses have increasing or decreasing PRI periodically. Lastly, dwell and switch pulses have alternating PRIs. \newline
+
+            An example input with two sources of radar pulses with a stable modulation is given below:
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+                \textcolor{red}{10}, 40, \textcolor{red}{50}, 60, 80, \textcolor{red}{90}, 100, 120, \textcolor{red}{130}, 140, 160, \textcolor{red}{170} 
+            \end{Verbatim}
+    
+            One of the sources produces the radar pulses with period $20$, the other source produces with period $40$. My task is to determine the different sources and their modulations. 
+
+            \pagebreak
 
         \subsection{Design Phase}
+            
+            To extract stable pulses, assuming  that arrival times are stored in a sorted array, we begin by traversing the array and examining each arrival time individually. Our aim is to find a recurring pattern starting 
+            from the current element of the traversal. If a recurring pattern is found which starts from the current element of the traversal, then all elements of the array belonging to that pattern is marked to be ignored in future.
+            Then the same process is applied to the next unmarked arrival time in the array until all elements are marked. \newline
 
+            To handle cases with jittered pulses, an error threshold is determined to limit maximum and minimum deviations from the original PRI. In my implementation this error threshold is set to 10 percent of the original PRI value.
+            Previous example with jittered pulses could be like below:
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+                \textcolor{red}{10}, 41, \textcolor{red}{52}, 62, 79, \textcolor{red}{87}, 100, 121, \textcolor{red}{130}, 141, 160, \textcolor{red}{173} 
+            \end{Verbatim}
+            \bigskip 
+
+            For cases with sliding and dwell \& switch modulated pulses, another approach is followed. All possible recurring groups are gathered in a list that meet the criteria for the sliding or dwell \& switch modulations.
+            Then, groups that belong the same source are combined together. An example of an increasing sliding modulated pulse array is given below:
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+                \textcolor{red}{10}, \textcolor{red}{15}, \textcolor{red}{22}, \textcolor{red}{30}, \textcolor{blue}{50}, \textcolor{blue}{55}, \textcolor{blue}{62}, \textcolor{blue}{70}, \textcolor{green}{90}, \textcolor{green}{95}, \textcolor{green}{102}, \textcolor{green}{110} 
+            \end{Verbatim}
+            \bigskip 
+
+            Each color here represents different group which their PRIs increase at the same rate. Approach I follow for extracting sliding and dwell \& switch modulated pulses rely on extracting all possible groups first,
+            then matching the groups that have the similar properties. \newline
+
+            For the staggering case, another kind of groups are extracted and matched with other groups. Staggering groups are not periodic within themselves but as groups they are periodic. In other words, time between any two consecutive 
+            staggering group is constant. Here is an example of staggered modulated pulses:
+
+            \begin{Verbatim}[commandchars=\\\{\}]
+                \textcolor{red}{10}, \textcolor{red}{14}, \textcolor{red}{16}, \textcolor{red}{32}, \textcolor{blue}{50}, \textcolor{blue}{54}, \textcolor{blue}{56}, \textcolor{blue}{72}, \textcolor{green}{90}, \textcolor{green}{94}, \textcolor{green}{96}, \textcolor{green}{112} 
+            \end{Verbatim}
+            \bigskip
+
+            Each group has the same PRI values which are 4, 2, 16. As explained before, groups have a constant difference between them which is 40. Therefore if I can find the groups \codeword{[10, 50, 90]}, \codeword{[14, 54, 94]}, \codeword{[16, 56, 96]} and \codeword{[32, 72, 112]}, then I can refer that
+            they are coming from the same source. Because period of all these groups are same and equals to 40.
+
+            \pagebreak
         \subsection{Implementation Phase}
+            The very draft implementation of the algorithm follows as:
+            \begin{minted}[gobble=16]{cpp}
+                int[] times;
+                bool[] visited = {false};
 
+                for (int i = 0; i < times.size(); ++i) {
+                    if (visited[i]) continue;
+
+                    /* 
+                    ...
+                    Find a pattern starting from i'th element of the times array
+                    ...
+                    */
+
+                    visited[elements of the found pattern] = true;
+                }
+                
+            \end{minted}
+            
+            Process of finding a recurring group is accomplished by looking the difference between current element of the array and the next unvisited element then searching for another elements which have the same period. Rest of the unmarked element are tried for other possible periods and the group with the most elements are marked.
+
+            \begin{minted}[gobble=16]{cpp}
+                int[] times;
+                bool[] visited = {false};
+
+                for (int i = 0; i < times.size(); ++i) {
+                    if (visited[i]) continue;
+
+                    int temp_times[] = subtract_element(times, times[i]);
+                    int maxlength = 0, period;
+                    int maxpattern[];
+                    //Try all possible periods for i'th item
+                    for (int j = i + 1; j < times.size(); ++j) { 
+                        if (visited[j]) continue;
+                        int pred_period = temp_times[j] //Predicted period is temp_times[j]
+                        int pattern[];
+                        int length = 1;
+                        
+                        //Try to find a recurring pattern with period = temp_times[j]
+                        for (int k = j + 1; j < times.size(); ++k) {
+                            if (visited[k]) continue;
+                            int expected_time = (length + 1) * pred_period;
+                        
+                            //There is no possible value for rest of the array
+                            if (expected_time < temp_times[k]) break;
+                            
+                            else if (expected_time == temp_times[k]) {
+                                length++;
+                                pattern.push_back(k);
+                            }
+                        }
+
+                        if (length > maxlength) { 
+                            maxlength = length; 
+                            maxpattern = pattern; 
+                            period = pred_period; 
+                        }
+                    }
+
+                    visited[elements of the maxpattern] = true;
+                }
+            \end{minted}
         \subsection{Testing Phase}
+
+        \textbf{Input 1:} 15 20 25 45 61 75 89 100 105 133 140 155 165 182 195 220 222 223 260 285 301 350 416 480 -1 \newline
+        \textbf{True Periods: } 30 40 65 \newline
+
+        \textbf{Output 1:}\newline
+        BUS COUNT: 3 \newline
+        PERIODS: 30 40 65 \newline
+        
+        \bigskip \hrule \bigskip \bigskip
+
+        \textbf{Input 1:} 0 15 20 25 43 46 62 65 74 89 94 100 112 129 134 136 141 158 173 180 188 194 210 235 247 249 282 282 310 329 368 428 -1 \newline
+        \textbf{True Periods: } 23 37 47 59 \newline
+
+        \textbf{Output 1:}\newline
+        BUS COUNT: 4 \newline
+        PERIODS: 47 59 23 37
+
 
 \chapter{Organization}
 
     \section{Organization and Structure}
 
+    \begin{figure}[h]
+        \includegraphics[scale=0.18]{iltaren-organization}
+        \centering
+        \caption{Organizational structure}
+    \end{figure}
+
     \section{Methodologies and Strategies Used in the Company}
+    
+    This information can not be shared due to confidentiality policies of the company.
 
 \chapter{Conclusion}
-
+Throughout my internship at İLTAREN, I designed and implemented a heuristic algorithm for identifying the longest path in a graph, along with developing a radar pulse de-interleaving algorithm. These experiences expanded my
+practical knowledge in algorithm design and programming emphasizing the significance of theory and the real world applications. 
 \chapter{Appendix}
 
 \end{document}

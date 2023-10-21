@@ -8,6 +8,7 @@
 \PYG{+w}{        }\PYG{p}{\PYGZcb{}}
 
 \PYG{+w}{        }\PYG{k}{return}\PYG{+w}{ }\PYG{n}{neighbours}\PYG{p}{;}
+\PYG{+w}{    }\PYG{p}{\PYGZcb{}}
 
 \PYG{p}{\PYGZcb{};}
 

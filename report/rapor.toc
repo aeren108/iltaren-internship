@@ -1,24 +1,24 @@
-\contentsline {chapter}{\numberline {1}Description of the Company}{4}{}%
-\contentsline {section}{\numberline {1.1}Company Name}{4}{}%
-\contentsline {section}{\numberline {1.2}Company Location}{4}{}%
-\contentsline {section}{\numberline {1.3}Organizational Structure of the Company}{4}{}%
-\contentsline {section}{\numberline {1.4}Number and Duties of Engineers Employed}{5}{}%
-\contentsline {section}{\numberline {1.5}Main Area of Business}{5}{}%
-\contentsline {section}{\numberline {1.6}Brief History of the Company}{5}{}%
-\contentsline {chapter}{\numberline {2}Introduction}{7}{}%
-\contentsline {chapter}{\numberline {3}Project}{8}{}%
-\contentsline {section}{\numberline {3.1}Longest Path in a Graph}{8}{}%
-\contentsline {subsection}{\numberline {3.1.1}Analysis Phase}{8}{}%
-\contentsline {subsection}{\numberline {3.1.2}Design Phase}{9}{}%
-\contentsline {subsection}{\numberline {3.1.3}Implementation Phase}{11}{}%
-\contentsline {subsection}{\numberline {3.1.4}Testing Phase}{15}{}%
-\contentsline {section}{\numberline {3.2}Radar Pulse De-interleaving}{16}{}%
-\contentsline {subsection}{\numberline {3.2.1}Analysis Phase}{16}{}%
-\contentsline {subsection}{\numberline {3.2.2}Design Phase}{16}{}%
-\contentsline {subsection}{\numberline {3.2.3}Implementation Phase}{16}{}%
-\contentsline {subsection}{\numberline {3.2.4}Testing Phase}{16}{}%
-\contentsline {chapter}{\numberline {4}Organization}{17}{}%
-\contentsline {section}{\numberline {4.1}Organization and Structure}{17}{}%
-\contentsline {section}{\numberline {4.2}Methodologies and Strategies Used in the Company}{17}{}%
-\contentsline {chapter}{\numberline {5}Conclusion}{18}{}%
-\contentsline {chapter}{\numberline {6}Appendix}{19}{}%
+\contentsline {chapter}{\numberline {1}Description of the Company}{5}{}%
+\contentsline {section}{\numberline {1.1}Company Name}{5}{}%
+\contentsline {section}{\numberline {1.2}Company Location}{5}{}%
+\contentsline {section}{\numberline {1.3}Organizational Structure of the Company}{5}{}%
+\contentsline {section}{\numberline {1.4}Number and Duties of Engineers Employed}{6}{}%
+\contentsline {section}{\numberline {1.5}Main Area of Business}{6}{}%
+\contentsline {section}{\numberline {1.6}Brief History of the Company}{6}{}%
+\contentsline {chapter}{\numberline {2}Introduction}{8}{}%
+\contentsline {chapter}{\numberline {3}Project}{9}{}%
+\contentsline {section}{\numberline {3.1}Longest Path in a Graph}{9}{}%
+\contentsline {subsection}{\numberline {3.1.1}Analysis Phase}{9}{}%
+\contentsline {subsection}{\numberline {3.1.2}Design Phase}{10}{}%
+\contentsline {subsection}{\numberline {3.1.3}Implementation Phase}{12}{}%
+\contentsline {subsection}{\numberline {3.1.4}Testing Phase}{16}{}%
+\contentsline {section}{\numberline {3.2}Radar Pulse De-interleaving}{17}{}%
+\contentsline {subsection}{\numberline {3.2.1}Analysis Phase}{17}{}%
+\contentsline {subsection}{\numberline {3.2.2}Design Phase}{18}{}%
+\contentsline {subsection}{\numberline {3.2.3}Implementation Phase}{19}{}%
+\contentsline {subsection}{\numberline {3.2.4}Testing Phase}{20}{}%
+\contentsline {chapter}{\numberline {4}Organization}{21}{}%
+\contentsline {section}{\numberline {4.1}Organization and Structure}{21}{}%
+\contentsline {section}{\numberline {4.2}Methodologies and Strategies Used in the Company}{21}{}%
+\contentsline {chapter}{\numberline {5}Conclusion}{22}{}%
+\contentsline {chapter}{\numberline {6}Appendix}{23}{}%

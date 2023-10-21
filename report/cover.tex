@@ -1,0 +1,89 @@
+\documentclass[14pt,class=extarticle, crop=false]{standalone}
+\usepackage[utf8]{inputenc}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\graphicspath{ {./assets/} }
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{setspace}
+\geometry{a4paper, portrait, margin=1.5cm}
+
+\usepackage{titlesec}
+\usepackage{hyperref}
+
+\setcounter{page}{-1}
+
+\titleclass{\subsubsubsection}{straight}[\subsection]
+
+\newcounter{subsubsubsection}[subsubsection]
+\renewcommand\thesubsubsubsection{\thesubsubsection.\arabic{subsubsubsection}}
+\renewcommand\theparagraph{\thesubsubsubsection.\arabic{paragraph}} % optional; useful if paragraphs are to be numbered
+
+\titleformat{\subsubsubsection}
+  {\normalfont\normalsize\itshape}{\thesubsubsubsection}{1em}{}
+\titlespacing*{\subsubsubsection}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+\makeatletter
+\renewcommand\paragraph{\@startsection{paragraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\renewcommand\subparagraph{\@startsection{subparagraph}{6}{\parindent}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {-1em}%
+  {\normalfont\normalsize\bfseries}}
+\def\toclevel@subsubsubsection{4}
+\def\toclevel@paragraph{5}
+\def\toclevel@paragraph{6}
+\def\l@subsubsubsection{\@dottedtocline{4}{7em}{4em}}
+\def\l@paragraph{\@dottedtocline{5}{10em}{5em}}
+\def\l@subparagraph{\@dottedtocline{6}{14em}{6em}}
+\makeatother
+
+\setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4}
+
+
+\graphicspath{ {./images/} }
+\usepackage{tikz}
+
+\begin{document}
+    \thispagestyle{empty}
+    \begin{tikzpicture}[overlay,remember picture]
+    
+        \node[left=2.2cm,above=1.5cm] at (current page.30){
+            \includegraphics[scale=0.15]{ceng.png}
+        };
+        \node[font=\normalsize\bf] at (8.4,-3.5) {MIDDLE EAST TECHNICAL UNIVERSITY};
+        \node[font=\normalsize\bf] at (8.4,-4.5) {DEPARTMENT OF COMPUTER ENGINEERING};
+        \node[right=2.2cm,above=1.5cm] at (current page.150){
+            \includegraphics[scale=0.026]{metu.png}
+        };
+        \node[font=\huge\bf] at (8.4,-10) {SUMMER PRACTICE REPORT};
+        \node[font=\huge\bf] at (8.4,-11) {CENG 300};
+        
+        \node[font=\normalsize\bf] at (2.4,-16) {Student Name \& Number: };
+        \node[font=\normalsize] at (9,-16) {Ahmet Eren Çolak - 2587921};
+        
+        \node[font=\normalsize\bf] at (1.55,-17) {Organization Name: };
+        \node[font=\normalsize] at (7.6,-16.85) {TÜBİTAK BİLGEM İLTAREN};
+        
+        \node[font=\normalsize\bf] at (1.2,-18) {Start-End Dates: };
+        \node[font=\normalsize] at (6,-18.05) {24.07.2023 - 04.09.2023};
+        
+        \node[font=\normalsize\bf] at (1.6,-19) {Total Working Days: };
+        \node[font=\normalsize] at (4.6,-19) {30};
+        
+        \node[font=\normalsize\bf] at (0.1,-20) {Address: };
+        \node[font=\normalsize] at (8.25,-20) {Ümit Mh. Şehit Mu. Kur. Yzb. İlhan TAN Kışlası, ANKARA};
+        
+        \node[font=\normalsize\bf] at (1.5,-22) {Student's Signature};
+        \node[font=\normalsize\bf] at (14,-22) {Organizational Approval};
+        
+    \end{tikzpicture}
+
+\end{document}
